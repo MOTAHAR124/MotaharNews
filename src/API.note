@@ -1,0 +1,8 @@
+My API key is: 4c32c182087240eab68e36a7d27836e2
+
+
+`https://newsapi.org/v2/top-headlines?country=in&apiKey=4c32c182087240eab68e36a7d27836e2&page=${
+        this.state.page + 1
+
+
+        <img src={!imageUrl?"https://img.jagranjosh.com/images/2024/June/2462024/asteroid-strike-earth-in-14-years-nasa-discovery.jpg": imageUrl} 
