@@ -2,7 +2,7 @@ import React from 'react'
 import { Link } from 'react-router-dom';
 // export class NavBar extends Component {  //{Used only on class Based }
 
-const NavBar =() =>{
+const NavBar = () =>{
 
     // render() { //{Used only on class Based }
         return (
