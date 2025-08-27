@@ -16,16 +16,64 @@ const News = (props) =>{
    
     const updateNews = async () => {
         props.setProgress(10);
-        const url = `https://newsapi.org/v2/top-headlines?country=${props.country}&category=${props.category}&apiKey=4c32c182087240eab68e36a7d27836e2&page=${page}&pageSize=${props.pageSize}`;
+        // Try different API endpoints if the first one fails
+        const urls = [
+            `https://newsapi.org/v2/top-headlines?country=${props.country}&category=${props.category}&apiKey=${props.apiKey}&page=${page}&pageSize=${props.pageSize}`,
+            `https://newsapi.org/v2/top-headlines?country=us&category=${props.category}&apiKey=${props.apiKey}&page=${page}&pageSize=${props.pageSize}`,
+            `https://newsapi.org/v2/everything?q=${props.category}&apiKey=${props.apiKey}&page=${page}&pageSize=${props.pageSize}&sortBy=publishedAt`
+        ];
+        
         setLoading(true)
-        let data = await fetch(url);
-        props.setProgress(30);
-        let parsedData = await data.json()
-        props.setProgress(70);
-        setArticles(parsedData.articles);
-        setTotalResults(parsedData.totalResults);
-        console.log(parsedData); 
-        setLoading (false)     
+        
+        for (let i = 0; i < urls.length; i++) {
+            try {
+                console.log(`Trying API URL ${i + 1}:`, urls[i]);
+                let data = await fetch(urls[i]);
+                props.setProgress(30);
+                console.log("Response status:", data.status);
+                
+                if (!data.ok) {
+                    console.error(`HTTP Error: ${data.status} ${data.statusText}`);
+                    continue; // Try next URL
+                }
+                
+                let parsedData = await data.json();
+                props.setProgress(70);
+                console.log("Full API Response:", parsedData);
+                
+                if (parsedData.status === "error") {
+                    console.error("API Error:", parsedData.message);
+                    if (i === urls.length - 1) { // Last attempt
+                        alert(`API Error: ${parsedData.message}`);
+                    }
+                    continue; // Try next URL
+                }
+                
+                if (parsedData.articles && parsedData.articles.length > 0) {
+                    console.log("Articles found:", parsedData.articles.length);
+                    setArticles(parsedData.articles);
+                    setTotalResults(parsedData.totalResults || parsedData.articles.length);
+                    break; // Success, exit loop
+                } else {
+                    console.log("No articles found, trying next endpoint...");
+                    if (i === urls.length - 1) { // Last attempt
+                        alert("No news articles found. This might be due to API limitations or no available content for the selected category/country.");
+                        setArticles([]);
+                        setTotalResults(0);
+                    }
+                }
+                
+            } catch (error) {
+                console.error(`Fetch error for URL ${i + 1}:`, error);
+                if (i === urls.length - 1) { // Last attempt
+                    alert(`Network Error: ${error.message}`);
+                    setArticles([]);
+                    setTotalResults(0);
+                }
+            }
+        }
+        
+        setLoading(false);
         props.setProgress(100);
     }
 
@@ -38,10 +86,13 @@ const News = (props) =>{
     const fetchMoreData = async () => {
       
         const url = `https://newsapi.org/v2/top-headlines?country=${props.country}&category=${props.category}&apiKey=${props.apiKey}&page=${page+1}&pageSize=${props.pageSize}`;
+        console.log("API URL for next page:", url); 
         setPage(page + 1 )
         let data = await fetch(url);
+        console.log("Fetch response status for next page:", data.status); 
         let parsedData = await data.json()
-        console.log(parsedData); 
+        console.log("API Response for next page:", parsedData); 
+        console.log("Articles count for next page:", parsedData.articles?.length); 
         setArticles (articles.concat(parsedData.articles))
         setTotalResults(parsedData.totalResults)
       };
