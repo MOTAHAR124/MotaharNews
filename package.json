@@ -9,10 +9,13 @@
     "deploy": "gh-pages -d dist",
     "dev": "vite",
     "build": "vite build",
+    "serve": "node server/index.js",
+    "start": "npm run build && node server/index.js",
     "lint": "eslint . --ext js,jsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview"
   },
   "dependencies": {
+    "express": "^4.19.2",
     "gh-pages": "^6.3.0",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",

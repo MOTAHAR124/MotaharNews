@@ -1,12 +1,16 @@
-import React, { useState } from "react";
+import React, { useContext, useState } from "react";
+import placeholderLogo from "../assets/motahar-logo.svg";
+import placeholderLogoDark from "../assets/motahar-logo-dark.svg";
+import { ThemeContext } from "../ThemeContext";
 
 const NewsItem = (props) => {
     let { title, description, imageUrl, newsUrl, Author, date, source } = props;
     const [imgError, setImgError] = useState(false);
+    const { isDark } = useContext(ThemeContext);
     const showImage = Boolean(imageUrl) && !imgError;
     return (
       <div className="my-3">
-        <div className="card h-100" style={{fontSize: '0.95rem', minHeight: '450px'}}>
+        <div className="card h-100 bg-body" style={{fontSize: '0.95rem', minHeight: '430px'}}>
           <div style={{
             display: 'flex',
             justifyContent: 'flex-end',
@@ -24,22 +28,27 @@ const NewsItem = (props) => {
               className="card-img-top"
               alt={title || 'News image'}
               onError={() => setImgError(true)}
+              loading="lazy"
               style={{
-                height: '220px',
+                height: '200px',
                 objectFit: 'cover',
                 borderBottom: '1px solid rgba(0,0,0,0.1)'
               }}
             />
           ) : (
             <div
-              className="d-flex align-items-center justify-content-center bg-light"
+              className="bg-body-tertiary"
               style={{
-                height: '220px',
+                height: '200px',
                 borderBottom: '1px solid rgba(0,0,0,0.1)'
               }}
               aria-label="No image available"
             >
-              <span className="text-muted" style={{ fontSize: '0.9rem' }}>No Image Available</span>
+              <img
+                src={isDark ? placeholderLogoDark : placeholderLogo}
+                alt="No image available"
+                style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+              />
             </div>
           )}
           <div className="card-body p-3 d-flex flex-column"> 
@@ -47,7 +56,8 @@ const NewsItem = (props) => {
               fontSize: '1.1rem', 
               lineHeight: '1.3', 
               marginBottom: '1rem',
-              fontWeight: '600'
+              fontWeight: '600',
+              color: 'var(--bs-body-color)'
             }}>
               {title?.slice(0, 100)}{title?.length > 100 ? '...' : ''}
             </h5>
@@ -55,14 +65,14 @@ const NewsItem = (props) => {
               fontSize: '0.95rem', 
               lineHeight: '1.5', 
               marginBottom: '1.25rem',
-              color: '#333'
+              color: 'var(--bs-body-color)'
             }}>
               {description?.slice(0, 150)}{description?.length > 150 ? '...' : ''}
             </p>
             <div className="mt-auto">
               <p className="card-text mb-3" style={{
                 fontSize: '0.8rem',
-                color: '#666'
+                color: 'var(--bs-secondary-color)'
               }}>
                 <i className="bi bi-person me-1"></i> {Author || 'Unknown'} <br/>
                 <i className="bi bi-calendar me-1"></i> {new Date(date).toLocaleDateString('en-US', {
