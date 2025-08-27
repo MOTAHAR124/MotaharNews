@@ -1,8 +1,9 @@
-// import React, { Component } from "react";
-import React from "react";
+import React, { useState } from "react";
 
 const NewsItem = (props) => {
     let { title, description, imageUrl, newsUrl, Author, date, source } = props;
+    const [imgError, setImgError] = useState(false);
+    const showImage = Boolean(imageUrl) && !imgError;
     return (
       <div className="my-3">
         <div className="card h-100" style={{fontSize: '0.95rem', minHeight: '450px'}}>
@@ -17,16 +18,30 @@ const NewsItem = (props) => {
               {source?.slice(0, 15)} 
             </span>
           </div>
-          <img 
-            src={!imageUrl ? "https://www.shutterstock.com/image-vector/no-image-picture-available-on-white-2450891049" : imageUrl}
-            className="card-img-top" 
-            alt="..." 
-            style={{
-              height: '220px', 
-              objectFit: 'cover',
-              borderBottom: '1px solid rgba(0,0,0,0.1)'
-            }}
-          />
+          {showImage ? (
+            <img
+              src={imageUrl}
+              className="card-img-top"
+              alt={title || 'News image'}
+              onError={() => setImgError(true)}
+              style={{
+                height: '220px',
+                objectFit: 'cover',
+                borderBottom: '1px solid rgba(0,0,0,0.1)'
+              }}
+            />
+          ) : (
+            <div
+              className="d-flex align-items-center justify-content-center bg-light"
+              style={{
+                height: '220px',
+                borderBottom: '1px solid rgba(0,0,0,0.1)'
+              }}
+              aria-label="No image available"
+            >
+              <span className="text-muted" style={{ fontSize: '0.9rem' }}>No Image Available</span>
+            </div>
+          )}
           <div className="card-body p-3 d-flex flex-column"> 
             <h5 className="card-title" style={{
               fontSize: '1.1rem', 
