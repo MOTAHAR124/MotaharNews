@@ -7,7 +7,7 @@ import LoadingBar from 'react-top-loading-bar'
 
 
 const App = () =>{ 
- const pageSize = 15 ;
+ const pageSize = 50;
  const apiKey = import.meta.env.VITE_NEWS_API_KEY
  console.log("API Key loaded:", apiKey); // Debug log
   // state = {
