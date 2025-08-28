@@ -1,3 +1,3 @@
 git add .
-git commit -m " added dark-mode, placeholder when no image, express server, 2api keys, readme.md "
+git commit -m " improved error handling, added saved articles"
 git push

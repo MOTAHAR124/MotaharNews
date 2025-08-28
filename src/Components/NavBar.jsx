@@ -1,9 +1,23 @@
 import React, { useContext } from 'react'
-import { Link, NavLink } from 'react-router-dom';
+import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { ThemeContext } from '../ThemeContext';
 
 const NavBar = () =>{
     const { isDark, toggleTheme } = useContext(ThemeContext);
+    const location = useLocation();
+    const navigate = useNavigate();
+
+    const onSavedClick = (e) => {
+      if (location.pathname === '/saved') {
+        // Prevent re-navigating to /saved; go back to previous route
+        e.preventDefault();
+        if (window.history.length > 1) {
+          navigate(-1);
+        } else {
+          navigate('/');
+        }
+      }
+    };
 
     return (
         <div>
@@ -24,7 +38,22 @@ const NavBar = () =>{
                         <li className="nav-item"><NavLink className={({isActive}) => `nav-link fw-bold ${isActive ? 'active' : ''}`} to="/sports">Sports</NavLink></li>
                         <li className="nav-item"><NavLink className={({isActive}) => `nav-link fw-bold ${isActive ? 'active' : ''}`} to="/technology">Technology</NavLink></li>                                                   
                     </ul>
-                    <div className="d-flex ms-auto">
+                    <div className="ms-auto d-flex align-items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          if (location.pathname === '/saved') {
+                            navigate(-1);
+                          } else {
+                            navigate('/saved');
+                          }
+                        }}
+                        className={`btn ${isDark ? 'btn-outline-light' : 'btn-outline-primary'} d-flex align-items-center`}
+                        title={location.pathname === '/saved' ? 'Go back' : 'View saved articles'}
+                      >
+                        <i className="bi bi-bookmark-heart me-2"></i>
+                        <span className="d-none d-sm-inline">Saved</span>
+                      </button>
                       <button
                         type="button"
                         className={`btn d-flex align-items-center ${isDark ? 'btn-outline-light' : 'btn-outline-dark'}`}

@@ -1,6 +1,8 @@
 import React, {useState} from 'react';
 import NavBar from './Components/NavBar';
 import News from './Components/News';
+import Saved from './Components/Saved';
+import ArticleDetail from './Components/ArticleDetail';
 import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
 import LoadingBar from 'react-top-loading-bar'
 import { ThemeProvider } from './ThemeContext';
@@ -57,6 +59,14 @@ const App = () =>{
             <Route
              exact path="/"
               element={<News setProgress={setProgress} key="/" pageSize={pageSize} country={"in"} category={"general"} />}
+            />
+            <Route
+             exact path="/saved"
+             element={<Saved />}
+            />
+            <Route
+             exact path="/article"
+             element={<ArticleDetail />}
             />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>

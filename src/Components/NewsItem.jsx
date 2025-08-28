@@ -1,13 +1,43 @@
-import React, { useContext, useState } from "react";
+import React, { useContext, useEffect, useMemo, useState } from "react";
 import placeholderLogo from "../assets/motahar-logo.svg";
 import placeholderLogoDark from "../assets/motahar-logo-dark.svg";
 import { ThemeContext } from "../ThemeContext";
 
 const NewsItem = (props) => {
-    let { title, description, imageUrl, newsUrl, Author, date, source } = props;
+    let { title, description, imageUrl, newsUrl, Author, date, source, onSavedChange } = props;
     const [imgError, setImgError] = useState(false);
+    const [isSaved, setIsSaved] = useState(false);
     const { isDark } = useContext(ThemeContext);
     const showImage = Boolean(imageUrl) && !imgError;
+
+    const article = useMemo(() => ({
+      title, description, imageUrl, url: newsUrl, author: Author, publishedAt: date, sourceName: source,
+    }), [title, description, imageUrl, newsUrl, Author, date, source]);
+
+    const readSaved = () => {
+      try { return JSON.parse(localStorage.getItem('savedArticles') || '[]'); } catch { return []; }
+    };
+    const writeSaved = (arr) => localStorage.setItem('savedArticles', JSON.stringify(arr));
+
+    useEffect(() => {
+      const saved = readSaved();
+      setIsSaved(saved.some(a => a.url === newsUrl));
+      // eslint-disable-next-line
+    }, [newsUrl]);
+
+    const toggleSave = () => {
+      const saved = readSaved();
+      const idx = saved.findIndex(a => a.url === newsUrl);
+      if (idx >= 0) {
+        saved.splice(idx, 1);
+        setIsSaved(false);
+      } else {
+        saved.unshift(article);
+        setIsSaved(true);
+      }
+      writeSaved(saved);
+      if (typeof onSavedChange === 'function') onSavedChange();
+    };
     return (
       <div className="my-3">
         <div className="card h-100 bg-body" style={{fontSize: '0.95rem', minHeight: '430px'}}>
@@ -69,23 +99,22 @@ const NewsItem = (props) => {
             }}>
               {description?.slice(0, 150)}{description?.length > 150 ? '...' : ''}
             </p>
-            <div className="mt-auto">
-              <p className="card-text mb-3" style={{
-                fontSize: '0.8rem',
-                color: 'var(--bs-secondary-color)'
-              }}>
-                <i className="bi bi-person me-1"></i> {Author || 'Unknown'} <br/>
-                <i className="bi bi-calendar me-1"></i> {new Date(date).toLocaleDateString('en-US', {
-                  year: 'numeric',
-                  month: 'short',
-                  day: 'numeric'
-                })}
-              </p>
+            <div className="mt-auto d-flex gap-2 flex-wrap">
+              <button
+                type="button"
+                onClick={toggleSave}
+                className={`btn btn-${isSaved ? 'success' : (isDark ? 'outline-light' : 'outline-dark')} flex-grow-1`}
+                style={{ fontSize: '0.9rem', padding: '0.5rem 1rem', fontWeight: '500', borderRadius: '4px' }}
+                title={isSaved ? 'Saved' : 'Save for later'}
+              >
+                <i className={`bi ${isSaved ? 'bi-bookmark-check-fill' : 'bi-bookmark-plus'} me-2`}></i>
+                {isSaved ? 'Saved' : 'Save'}
+              </button>
               <a
                 rel="noreferrer"
                 href={newsUrl}
                 target="_blank"
-                className="btn btn-dark w-100"
+                className={`btn btn-dark ${isDark ? 'border border-2 border-light' : ''} rounded-pill shadow flex-grow-1`}
                 style={{
                   fontSize: '0.9rem', 
                   padding: '0.5rem 1rem',
