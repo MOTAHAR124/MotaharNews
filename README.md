@@ -7,6 +7,7 @@ A React + Vite news application with dark mode, infinite scroll, image placehold
 - __Dark Mode__: Theme toggle via context across the app.
 - __Infinite Scroll__: Seamless pagination of articles.
 - __Image Placeholder__: Graceful UI when articles lack images.
+- __Saved Articles__: Save/remove articles to localStorage and view them later at `/saved`.
 - __Dev Proxy__: Vite server proxies `/newsapi/*` to NewsAPI to avoid CORS and keep keys off the client.
 - __Production Server__: Tiny Express server proxies `/api/*` to NewsAPI and serves the built app.
 - __Dual API Keys__: Automatically switch to a backup key on 401/429.
@@ -96,12 +97,24 @@ npm run start
 │  ├─ App.jsx                 # Routes, props like pageSize
 │  ├─ ThemeContext.jsx        # Dark mode context
 │  └─ ...
+├─ api/
+│  └─ news/[...path].js       # Vercel serverless proxy for /api/* → NewsAPI
 ├─ server/
 │  └─ index.js                # Express prod server + /api proxy
 ├─ vite.config.js             # Vite dev proxy + key selection
+├─ vercel.json                # Rewrites /api/:path* → /api/news/:path*
 ├─ package.json
 └─ README.md
 ```
+
+## Saved Articles
+- __How to save__: Click the "Save" button on any card in `NewsItem.jsx`. It toggles to "Saved" when stored.
+- __Where it’s stored__: Browser `localStorage` under the key `savedArticles` as an array of article objects. Uniqueness is by `url`.
+- __View saved__: Navigate to `/saved` (route renders `src/Components/Saved.jsx`). You can remove an item by clicking the Save/Saved button again.
+- __Limits__:
+  - Data is per-browser and per-device; not synced to a backend.
+  - Clearing site data or switching browsers/devices will remove saved items.
+  - LocalStorage capacity is limited (~5–10MB depending on browser).
 
 ## Configuration notes
 - __CORS__: Avoided via dev proxy (`/newsapi`) and prod server (`/api`).
@@ -114,9 +127,61 @@ npm run start
 - Static hosting (e.g., GitHub Pages) serves only the `dist/` frontend. It cannot proxy to NewsAPI by itself.
   - If you deploy static-only, your browser requests must go directly to NewsAPI and will expose your key and hit CORS limits.
 - Recommended: deploy the Express server as well on a platform like Render, Railway, Fly.io, or a VPS.
-  - Set `NEWS_API_KEY_1` (and optionally `_2`) as environment variables on the platform.
+  - Set `VITE_NEWS_API_KEY_1` (and optionally `VITE_NEWS_API_KEY_2`) as environment variables on the platform.
   - Serve `dist/` and proxy `/api/*` as in `server/index.js`.
 - Alternatively, create a serverless function (Netlify/Vercel) that forwards `/api/*` to NewsAPI.
+
+### Deploy to Vercel (recommended)
+This project works well on Vercel as a static Vite app plus a serverless proxy for `/api/*`.
+
+1) Setup environment variables on Vercel
+- In your Vercel project settings, add:
+  - `VITE_NEWS_API_KEY_1 = YOUR_KEY_1`
+  - `VITE_NEWS_API_KEY_2 = YOUR_KEY_2` (optional)
+
+2) Add a serverless function for the API proxy
+- Create `api/news/[...path].js` with a minimal proxy that forwards to NewsAPI and injects the key.
+- The client already calls `/api/...` in production (`src/Components/News.jsx` sets `API_BASE` to `/api`).
+
+Example shape (pseudocode):
+```
+export default async function handler(req, res) {
+  // Read keys from process.env.VITE_NEWS_API_KEY_1 / _2
+  // Build target URL: https://newsapi.org + req.url.replace(/^\/api/, '')
+  // Choose key from X-Use-Key header ("1"|"2"); default to key 1
+  // Fetch upstream with 'X-Api-Key' header
+  // On 401/429 and if alternate key exists, retry once
+  // Pipe status/content-type/body back to client
+}
+```
+
+3) (Optional) Add `vercel.json` rewrites
+- The catch-all function at `api/news/[...path].js` handles `/api/news/*` automatically.
+- To handle any `/api/*` path, add a rewrite:
+```json
+{
+  "rewrites": [
+    { "source": "/api/:path*", "destination": "/api/news/:path*" }
+  ]
+}
+```
+
+4) Configure the build
+- No special adapter needed. Vercel detects Vite.
+- Build command: `npm run build`
+- Output directory: `dist`
+
+5) Deploy
+- Via UI: Import the GitHub repo in Vercel, set env vars, and Deploy.
+- Via CLI:
+  - Install: `npm i -g vercel`
+  - First deploy (interactive): `vercel`
+  - Production deploy: `vercel --prod`
+
+Notes
+- You do not need `server/index.js` on Vercel; the serverless `api/news.js` replaces it.
+- Keep API keys only in Vercel env vars. Do not commit them.
+- The `homepage` field in `package.json` is for GitHub Pages and is not used by Vercel.
 
 ## Troubleshooting
 - __429 Too Many Requests__:
